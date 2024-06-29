@@ -67,7 +67,6 @@ def train_one_epoch(model, optimizer, dataloader,
 
     metric_logger.synchronize_between_processes()
     torch.cuda.empty_cache()
-
     return metric_logger.meters["loss"].global_avg, lr
 
 
