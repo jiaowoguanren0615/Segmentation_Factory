@@ -178,17 +178,17 @@ def dice_loss(x: torch.Tensor, target: torch.Tensor, multiclass: bool = False, i
 
 
 
-if __name__ == '__main__':
-
-    def criterion(inputs, target, loss_weight=None, num_classes: int = 2, dice: bool = True, ignore_index: int = -100):
-        loss = nn.functional.cross_entropy(inputs, target, ignore_index=ignore_index, weight=loss_weight)
-        if dice is True:
-            dice_target = build_target(target, num_classes, ignore_index)
-            loss += dice_loss(inputs, dice_target, multiclass=True, ignore_index=ignore_index)
-        return loss
-
-    pred = torch.randint(0, 19, (2, 19, 512, 512), dtype=torch.float)
-    label = torch.randint(0, 19, (2, 512, 512), dtype=torch.long)
-    y = criterion(pred, label, num_classes=19, ignore_index=255)
-    # y = loss_fn(pred, label)
-    print(y)
+# if __name__ == '__main__':
+#
+#     def criterion(inputs, target, loss_weight=None, num_classes: int = 2, dice: bool = True, ignore_index: int = -100):
+#         loss = nn.functional.cross_entropy(inputs, target, ignore_index=ignore_index, weight=loss_weight)
+#         if dice is True:
+#             dice_target = build_target(target, num_classes, ignore_index)
+#             loss += dice_loss(inputs, dice_target, multiclass=True, ignore_index=ignore_index)
+#         return loss
+#
+#     pred = torch.randint(0, 19, (2, 19, 512, 512), dtype=torch.float)
+#     label = torch.randint(0, 19, (2, 512, 512), dtype=torch.long)
+#     y = criterion(pred, label, num_classes=19, ignore_index=255)
+#     # y = loss_fn(pred, label)
+#     print(y)
