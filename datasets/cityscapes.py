@@ -9,10 +9,31 @@ import numpy as np
 
 from torchvision import io
 
-
+"""
+    **DataFolder**
+    cityscapes/
+        gtFine/
+            train/
+                aachen/
+                    color.png, instanceIds.png, labelIds.png, polygons.json,
+                    labelTrainIds.png
+                    ...
+            val/
+            test/
+        # below are generated Cityscapes panoptic annotation
+        cityscapes_panoptic_train.json
+        cityscapes_panoptic_train/
+        cityscapes_panoptic_val.json
+        cityscapes_panoptic_val/
+        cityscapes_panoptic_test.json
+        cityscapes_panoptic_test/
+        leftImg8bit/
+            train/
+            val/
+            test/
+"""
 class Cityscapes(Dataset):
     """Cityscapes <http://www.cityscapes-dataset.com/> Dataset.
-
     **Parameters:**
         - **root** (string): Root directory of datasets where directory 'leftImg8bit' and 'gtFine' or 'gtCoarse' are located.
         - **split** (string, optional): The image split to use, 'train', 'test' or 'val' if mode="gtFine" otherwise 'train', 'train_extra' or 'val'

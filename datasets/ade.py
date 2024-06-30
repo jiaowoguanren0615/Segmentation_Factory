@@ -7,6 +7,13 @@ from typing import Tuple
 
 
 class ADE20K(Dataset):
+
+    """
+    ADEChallengeData2016/
+        images/
+        annotations/
+        objectInfo150.txt
+    """
     CLASSES = [
         'wall', 'building', 'sky', 'floor', 'tree', 'ceiling', 'road', 'bed ', 'windowpane', 'grass', 'cabinet',
         'sidewalk', 'person', 'earth',

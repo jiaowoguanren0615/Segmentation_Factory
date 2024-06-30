@@ -9,6 +9,8 @@ import torch.nn.functional as F
 from models.backbones.mobilenetv4_config import MODEL_SPECS
 
 
+## https://arxiv.org/pdf/2404.10518
+
 def make_divisible(
         value: float,
         divisor: int,
@@ -182,6 +184,19 @@ class MobileNetV4(nn.Module):
         # print(self.last_layer_input_channel)
         # self.head = nn.Linear(self.last_layer_input_channel, self.num_classes) if self.num_classes > 0 \
         #     else nn.Identity()
+
+        # weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.zeros_(m.bias)
 
 
     def forward(self, x):

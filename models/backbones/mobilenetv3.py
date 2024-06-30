@@ -111,6 +111,19 @@ class MobileNetV3(nn.Module):
                 self.features.append(InvertedResidual(input_channel, output_channel, stride, t))
                 input_channel = output_channel
 
+        # weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out')
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.zeros_(m.bias)
+
     def forward(self, x: Tensor) -> Tensor:
         outs = []
         for i, m in enumerate(self.features):

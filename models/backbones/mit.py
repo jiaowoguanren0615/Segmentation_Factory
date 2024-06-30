@@ -5,6 +5,8 @@ from models.layers import DropPath, trunc_normal_
 import math
 
 
+## https://arxiv.org/pdf/2105.15203
+
 class Attention(nn.Module):
     def __init__(self, dim, head, sr_ratio):
         super().__init__()

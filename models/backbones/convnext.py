@@ -3,6 +3,8 @@ from torch import nn, Tensor
 from models.layers import DropPath, trunc_normal_
 
 
+## https://arxiv.org/pdf/2201.03545
+
 class LayerNorm(nn.Module):
     """Channel first layer norm
     """
