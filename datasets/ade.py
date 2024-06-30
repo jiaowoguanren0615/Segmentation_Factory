@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
@@ -40,7 +41,7 @@ class ADE20K(Dataset):
         'plate', 'monitor', 'bulletin board', 'shower', 'radiator', 'glass', 'clock', 'flag'
     ]
 
-    PALETTE = torch.tensor([
+    color = [
         [120, 120, 120], [180, 120, 120], [6, 230, 230], [80, 50, 50], [4, 200, 3], [120, 120, 80], [140, 140, 140],
         [204, 5, 255],
         [230, 230, 230], [4, 250, 7], [224, 5, 255], [235, 255, 7], [150, 5, 61], [120, 120, 70], [8, 255, 51],
@@ -78,7 +79,11 @@ class ADE20K(Dataset):
         [41, 0, 255], [41, 255, 0], [173, 0, 255], [0, 245, 255], [71, 0, 255], [122, 0, 255], [0, 255, 184],
         [0, 92, 255],
         [184, 255, 0], [0, 133, 255], [255, 214, 0], [25, 194, 194], [102, 255, 0], [92, 0, 255]
-    ])
+    ]
+    color.append([0, 0, 0])
+    train_id_to_color = np.array(color)
+    PALETTE = torch.tensor(color)
+
 
     def __init__(self, root: str, split: str = 'train', transform=None) -> None:
         super().__init__()
@@ -109,8 +114,12 @@ class ADE20K(Dataset):
             image, label = self.transform(image, label)
         return image, label.squeeze().long() - 1
 
+    @staticmethod
+    def decode_target(cls, target):
+        target[target == 255] = 150
+        # target = target.astype('uint8') + 1
+        return cls.train_id_to_color[target]
 
 if __name__ == '__main__':
     from datasets.visualize import visualize_dataset_sample
-
     visualize_dataset_sample(ADE20K, '/mnt/d/ADEChallengeData2016')

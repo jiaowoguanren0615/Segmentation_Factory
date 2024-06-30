@@ -176,6 +176,6 @@ class Cityscapes(Dataset):
             return '{}_disparity.png'.format(mode)
 
 
-if __name__ == '__main__':
-    from datasets.visualize import visualize_dataset_sample
-    visualize_dataset_sample(Cityscapes, '/mnt/d/CityScapesDataset')
+# if __name__ == '__main__':
+#     from datasets.visualize import visualize_dataset_sample
+#     visualize_dataset_sample(Cityscapes, '/mnt/d/CityScapesDataset')

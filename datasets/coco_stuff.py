@@ -31,7 +31,7 @@ class COCOStuff(Dataset):
         'water-other', 'waterdrops', 'window-blind', 'window-other', 'wood'
     ]
 
-    PALETTE = torch.tensor([
+    color_palette = [
         [178,  55, 178], [ 82, 178, 178], [  0,  87, 178], [178,  22, 178], [178, 178, 142], [177, 178,   0], [178,  32, 178], [ 62, 178, 110], [178,  76, 178], [ 72, 178,  99],
         [  0, 178, 178], [178, 147, 178], [ 70, 178, 178], [  0, 141, 178], [178,   0,  53], [178,   0,   3], [178,   0, 129], [178, 178,   0], [154, 178,  18], [  0,   0, 175],
         [  0,  99, 178], [115,   0, 178], [  0, 156, 178], [  0,   0, 146], [164, 178,   8], [151, 178,   0], [  0,   0, 132], [ 86, 178,  89], [178,   0,   0], [178,  86, 178],
@@ -49,8 +49,12 @@ class COCOStuff(Dataset):
         [178, 178,   0], [178, 103, 178], [178, 178,   0], [178, 111,   0], [178, 178,   0], [  0,  61, 178], [ 22, 178, 150], [178,   0,   0], [178,   0,  91], [178, 178, 119],
         [178, 127, 178], [178,   0,  28], [178, 178, 131], [178,   0,   0], [  0,  74, 178], [178, 177, 166], [ 45, 178, 130], [162,   0, 178], [178, 113, 178], [178, 123, 178],
         [ 93, 178,  79], [178, 154, 178], [178, 178,   0], [178, 106, 178], [  0, 178, 178], [  0,   0, 160], [133, 178, 178], [106, 178,  69], [136, 178,   0], [ 32, 178, 140], [116, 178,  59]
-    ])
+    ]
+    color_palette.append([0, 0, 0])
+    PALETTE = torch.tensor(color_palette)
     UNUSEID = [11, 25, 28, 29, 44, 65, 67, 68, 70, 82, 90]
+
+    train_id_to_color = np.array(color_palette)
 
     def __init__(self, root: str, split: str = 'train', transform=None) -> None:
         super().__init__()
@@ -76,7 +80,7 @@ class COCOStuff(Dataset):
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
         img_path = str(self.files[index])
-        lbl_path = str(self.files[index]).replace('images', 'labels').replace('.jpg', '.png')
+        lbl_path = str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png')
 
         image = io.read_image(img_path)
         label = io.read_image(lbl_path)
@@ -85,11 +89,18 @@ class COCOStuff(Dataset):
             image, label = self.transform(image, label)
         return image, self.encode(label.squeeze().numpy()).long()
 
+
     def encode(self, label: Tensor) -> Tensor:
         label = self.label_map[label]
         return torch.from_numpy(label)
 
+    @staticmethod
+    def decode_target(cls, target):
+        target[target == 255] = 172
+        # target = target.astype('uint8') + 1
+        return cls.train_id_to_color[target]
 
-if __name__ == '__main__':
-    from datasets.visualize import visualize_dataset_sample
-    visualize_dataset_sample(COCOStuff, '/mnt/d/COCO_Stuff')
+
+# if __name__ == '__main__':
+#     from datasets.visualize import visualize_dataset_sample
+#     visualize_dataset_sample(COCOStuff, '/mnt/d/CocoStuff2017')
