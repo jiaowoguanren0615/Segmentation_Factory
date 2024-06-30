@@ -349,11 +349,15 @@ class ExtRandomCrop(object):
         """
         w, h = img.size
         th, tw = output_size
+
+        # print(f"Image size: {w} x {h}")
+        # print(f"Target size: {tw} x {th}")
+
         if w == tw and h == th:
             return 0, 0, h, w
 
-        i = random.randint(0, h - th)
-        j = random.randint(0, w - tw)
+        i = random.randint(0, abs(h - th))
+        j = random.randint(0, abs(w - tw))
         return i, j, th, tw
 
     def __call__(self, img, lbl):
@@ -365,7 +369,7 @@ class ExtRandomCrop(object):
             PIL Image: Cropped image.
             PIL Image: Cropped label.
         """
-        assert img.size == lbl.size, 'size of img and lbl should be the same. %s, %s' % (img.size, lbl.size)
+        assert img.size == lbl.size , 'size of img and lbl should be the same. %s, %s' % (img.size(), lbl.size())
         if self.padding > 0:
             img = F.pad(img, self.padding)
             lbl = F.pad(lbl, self.padding)
@@ -682,8 +686,9 @@ class Posterize:
 
 
 def get_train_augmentation(args):
-    return Compose([
-        ExtRandomCrop(size=(args.image_size, args.image_size)),
+    return ExtCompose([
+        # ExtRandomCrop(size=(args.image_size, args.image_size)),
+        torchvision.transforms.Resize((args.image_size, args.image_size)),
         ExtColorJitter(brightness=0.5, contrast=0.5, saturation=0.5),
         ExtRandomHorizontalFlip(),
         ExtToTensor(),
@@ -693,7 +698,7 @@ def get_train_augmentation(args):
 
 
 def get_val_augmentation(args):
-    return Compose([
+    return ExtCompose([
         ExtResize(args.image_size, args.image_size),
         ExtToTensor(),
         ExtNormalize(mean=[0.485, 0.456, 0.406],

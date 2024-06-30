@@ -19,6 +19,7 @@ import torch.backends.cudnn as cudnn
 
 from models.backbones import *
 from models.heads import *
+from models.build_models import SegmentationModel
 
 from datasets import *
 
@@ -37,10 +38,11 @@ def get_args_parser():
     parser.add_argument("--data_root", type=str, default='/mnt/d/CityScapesDataset',
                         help="path to CityScapes Dataset")
     parser.add_argument("--dataset", type=str, default='cityscapes',
-                        choices=['cityscapes', 'voc', 'cocostuff', 'ade20k'])
+                        choices=['cityscapes', 'voc', 'cocostuff', 'ade'])
     parser.add_argument("--image_size", type=int, default=512, help="input size")
     parser.add_argument("--ignore_label", type=int, default=255, help="the dataset ignore_label")
     parser.add_argument("--ignore_index", type=int, default=255, help="the dataset ignore_index")
+    parser.add_argument("--dice", type=bool, default=True, help="Calculate Dice Loss")
     parser.add_argument('--data_len', default=5000, type=int,
                         help='count of your entire data_set. For example: Cityscapes 5000, voc 11530')
     parser.add_argument('--nb_classes', default=19, type=int,
@@ -54,11 +56,18 @@ def get_args_parser():
     parser.add_argument("--val_print_freq", type=int, default=100)
 
     # Model parameters
-    parser.add_argument('--backbones', default='dptv2_vits', type=str, metavar='MODEL',
-                        choices=['dptv2_vits', 'dptv2_vitb', 'dptv2_vitl', 'dptv2_vitg'],
+    parser.add_argument('--backbone', default='MiT-B0', type=str, metavar='MODEL',
+                        choices=['crossformer_tiny', 'crossformer_base', 'crossformer_large', 'crossformer_small',
+                                 'crossformerpp_base', 'crossformerpp_large', 'crossformerpp_small', 'crossformerpp_huge',
+                                 'MiT-B0', 'MiT-B1', 'MiT-B2', 'MiT-B3', 'MiT-B4', 'MiT-B5',
+                                 'convnextv2_base', 'convnextv2_large', 'convnextv2_huge', 'convnextv2_tiny'],
                         help='Feature extractor Backbones')
-    parser.add_argument('--heads', default='dptv2_vits', type=str, metavar='MODEL',
-                        choices=['dptv2_vits', 'dptv2_vitb', 'dptv2_vitl', 'dptv2_vitg'],
+
+    parser.add_argument('--pretrained_backbone', default='', type=str, metavar='MODEL',
+                        help='Backbone pretrained weights path')
+
+    parser.add_argument('--heads', default='segformer', type=str, metavar='MODEL',
+                        choices=['fpn', 'segformer', 'upernet'],
                         help='Segmentation Head')
 
     # Optimizer parameters
@@ -195,23 +204,10 @@ def main(args):
                            drop_last=True, pin_memory=args.pin_mem, sampler=sampler_val)
 
 
-    # print('===========')
-    # for a, b in trainloader:
-    #     print(a.size())
-    #     print(b.size())
-    #     break
-    #
-    # for a, b in valloader:
-    #     print(a.size())
-    #     print(b.size())
-    #     break
-
-    model = create_model(
-        args.model,
-        num_classes=args.nb_classes,
-        encoder_pretrain_weights=args.encoder_pretrain_weights,
-        args=args
-    )
+    model = SegmentationModel(args.backbone,
+                              pretrained_backbone=args.pretrained_backbone,
+                              num_classes=args.nb_classes,
+                              args=args)
 
     model = model.to(device)
 
@@ -247,7 +243,7 @@ def main(args):
 
     n_parameters = sum([p.numel() for p in model.parameters() if p.requires_grad])
     print('\n********ESTABLISH ARCHITECTURE********')
-    print(f'Model: {args.model}\nNumber of parameters: {n_parameters}')
+    print(f'Model: {model}\nNumber of parameters: {n_parameters}')
     print('**************************************\n')
 
     optimizer = create_optimizer(args, model_without_ddp)
@@ -344,9 +340,9 @@ def main(args):
                     "Acc": mean_acc,
                     "scaler": loss_scaler.state_dict()
                 }
-                torch.save(checkpoint_save, f'{args.save_weights_dir}/{args.model}_best_model.pth')
+                torch.save(checkpoint_save, f'{args.save_weights_dir}/{model}_best_model.pth')
                 print('******************Save Checkpoint******************')
-                print(f'Save weights to {args.save_weights_dir}/{args.model}_best_model.pth\n')
+                print(f'Save weights to {args.save_weights_dir}/{model}_best_model.pth\n')
         else:
             print('*********No improving mIOU, No saving checkpoint*********')
 

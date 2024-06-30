@@ -39,7 +39,7 @@ def train_one_epoch(model, optimizer, dataloader,
 
         with torch.cuda.amp.autocast():
             logits = model(img)
-            loss = criterion(logits, lbl, loss_weight, num_classes=args.nb_classes, ignore_index=args.ignore_index)
+            loss = criterion(logits, lbl, loss_weight, num_classes=args.nb_classes, dice=args.dice, ignore_index=args.ignore_index)
 
         loss_value = loss.item()
         if not math.isfinite(loss_value):

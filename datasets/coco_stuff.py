@@ -4,6 +4,7 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from torchvision import io
 from pathlib import Path
+from PIL import Image
 from typing import Tuple
 
 
@@ -79,15 +80,20 @@ class COCOStuff(Dataset):
         return len(self.files)
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
-        img_path = str(self.files[index])
-        lbl_path = str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png')
 
-        image = io.read_image(img_path)
-        label = io.read_image(lbl_path)
+        ## TODO If you want to use 'visualize_dataset_sample' funtion, comment follow two lines and do step 2
+        image = Image.open(self.files[index]).convert('RGB')
+        label = Image.open(str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png'))
+
+        ## TODO step 2: Comment these follow four lines code
+        # img_path = str(self.files[index])
+        # lbl_path = str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png')
+        # image = io.read_image(img_path)
+        # label = io.read_image(lbl_path)
 
         if self.transform:
             image, label = self.transform(image, label)
-        return image, self.encode(label.squeeze().numpy()).long()
+        return image, self.encode(label.numpy()).long()
 
 
     def encode(self, label: Tensor) -> Tensor:

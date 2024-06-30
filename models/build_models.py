@@ -2,9 +2,10 @@ from models.backbones import *
 from models.heads import *
 import torch.nn as nn
 import torch
+import os
 
-class SegmentationModel(nn.Module):  ##crossformer_small
-    def __init__(self, backbone: str = 'MiT-B0', pretrained_backbone=None, num_classes: int = 19):
+class SegmentationModel(nn.Module):
+    def __init__(self, backbone: str = 'MiT-B0', pretrained_backbone='', num_classes: int = 19, seg_head = None, **kwargs):
         super(SegmentationModel, self).__init__()
         self.backbone_name = backbone
         if 'MiT' in self.backbone_name:
@@ -13,8 +14,11 @@ class SegmentationModel(nn.Module):  ##crossformer_small
         else:
             self.backbone = eval(self.backbone_name + '()')
 
-        if pretrained_backbone is not None:
-            self.backbone.load_state_dict(torch.load(pretrained_backbone, map_location='cpu'), strict=False)
+        if pretrained_backbone:
+            if os.path.exists(pretrained_backbone):
+                self.backbone.load_state_dict(torch.load(pretrained_backbone, map_location='cpu'), strict=False)
+            else:
+                print('The pretrained weights path of backbone is wrong! File does not exists!!')
 
         if 'MiT' in backbone:
             self.decode_head = SegFormerHead(self.backbone.channels, 256 if 'B0' in backbone or 'B1' in backbone else 768,
@@ -37,10 +41,10 @@ class SegmentationModel(nn.Module):  ##crossformer_small
         return y
 
 
-if __name__ == '__main__':
-    model = SegmentationModel('MiT-B0')
-    x = torch.randn(2, 3, 224, 224)
-    y = model(x)
-    print(model)
-    print(y.shape)
-    print(model.modules)
+# if __name__ == '__main__':
+#     model = SegmentationModel('MiT-B0')
+#     x = torch.randn(2, 3, 512, 512)
+#     y = model(x)
+#     print(model)
+#     print(y.shape)
+    # print(model.modules)

@@ -190,17 +190,21 @@ class VOCSegmentation(data.Dataset):
         Returns:
             tuple: (image, target) where target is the image segmentation.
         """
-        img_path = str(self.images[index])
-        lbl_path = str(self.masks[index])
+        ## TODO If you want to use 'visualize_dataset_sample' funtion, comment follow two lines and do step 2
+        image = Image.open(self.images[index]).convert('RGB')
+        target = Image.open(self.masks[index])
 
-        image = io.read_image(img_path)
-        target = io.read_image(lbl_path)
-        # img = Image.open(self.images[index]).convert('RGB')
-        # target = Image.open(self.masks[index])
+
+        ## TODO step 2: Comment these follow four lines code
+        # img_path = str(self.images[index])
+        # lbl_path = str(self.masks[index])
+        # image = io.read_image(img_path)
+        # target = io.read_image(lbl_path)
+
         if self.transform is not None:
             image, target = self.transform(image, target)
 
-        return image, target.squeeze().long()
+        return image, target.long()
 
     def __len__(self):
         return len(self.images)
@@ -232,6 +236,6 @@ def download_extract(url, root, filename, md5):
         tar.extractall(path=root)
 
 
-if __name__ == '__main__':
-    from datasets.visualize import visualize_dataset_sample
-    visualize_dataset_sample(VOCSegmentation, '/mnt/d/')
+# if __name__ == '__main__':
+#     from datasets.visualize import visualize_dataset_sample
+#     visualize_dataset_sample(VOCSegmentation, '/mnt/d/')

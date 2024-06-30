@@ -21,7 +21,7 @@ def visualize_dataset_sample(dataset, root, split='val', batch_size=4):
     dataset = dataset(root, split=split, transform=transform)
     dataloader = DataLoader(dataset, shuffle=True, batch_size=batch_size)
     image, label = next(iter(dataloader))
-
+    label = label.squeeze().long()
     print(f"Image Shape\t: {image.shape}")
     print(f"Image Dtype\t: {image.dtype}")
     print(f"Label Shape\t: {label.shape}")

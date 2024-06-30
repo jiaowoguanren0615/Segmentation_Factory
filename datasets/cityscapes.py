@@ -142,18 +142,20 @@ class Cityscapes(Dataset):
             tuple: (image, target) where target is a tuple of all target types if target_type is a list with more
             than one item. Otherwise target is a json object if target_type="polygon", else the image segmentation.
         """
-        # image = Image.open(self.images[index]).convert('RGB')
-        # target = Image.open(self.targets[index])
-        img_path = str(self.images[index])
-        lbl_path = str(self.targets[index])
+        ## TODO If you want to use 'visualize_dataset_sample' funtion, comment follow two lines and do step 2
+        image = Image.open(self.images[index]).convert('RGB')
+        target = Image.open(self.targets[index])
 
-        image = io.read_image(img_path)
-        target = io.read_image(lbl_path)
+        ## TODO step 2: Comment these follow four lines code
+        # img_path = str(self.images[index])
+        # lbl_path = str(self.targets[index])
+        # image = io.read_image(img_path)
+        # target = io.read_image(lbl_path)
 
         if self.transform:
             image, target = self.transform(image, target)
         target = self.encode_target(target)
-        return image, target.squeeze()
+        return image, target
 
     def __len__(self):
         return len(self.images)

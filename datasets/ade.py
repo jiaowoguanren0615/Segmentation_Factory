@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import io
 from pathlib import Path
 from typing import Tuple
+from PIL import Image
 
 
 class ADE20K(Dataset):
@@ -15,6 +16,7 @@ class ADE20K(Dataset):
         annotations/
         objectInfo150.txt
     """
+
     CLASSES = [
         'wall', 'building', 'sky', 'floor', 'tree', 'ceiling', 'road', 'bed ', 'windowpane', 'grass', 'cabinet',
         'sidewalk', 'person', 'earth',
@@ -104,15 +106,24 @@ class ADE20K(Dataset):
         return len(self.files)
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
-        img_path = str(self.files[index])
-        lbl_path = str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png')
 
-        image = io.read_image(img_path)
-        label = io.read_image(lbl_path)
+        ## TODO If you want to use 'visualize_dataset_sample' funtion, comment follow two lines and do step 2
+        image = Image.open(self.files[index]).convert('RGB')
+        label = Image.open(str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png'))
+
+
+        ## TODO step 2: Comment these follow four lines code
+        # img_path = str(self.files[index])
+        # lbl_path = str(self.files[index]).replace('images', 'annotations').replace('.jpg', '.png')
+        # image = io.read_image(img_path)
+        # label = io.read_image(lbl_path)
 
         if self.transform:
             image, label = self.transform(image, label)
-        return image, label.squeeze().long() - 1
+
+        label[label == -1] = 0
+        label[label == 255] = 0
+        return image, label.long()
 
     @staticmethod
     def decode_target(cls, target):
@@ -120,6 +131,6 @@ class ADE20K(Dataset):
         # target = target.astype('uint8') + 1
         return cls.train_id_to_color[target]
 
-if __name__ == '__main__':
-    from datasets.visualize import visualize_dataset_sample
-    visualize_dataset_sample(ADE20K, '/mnt/d/ADEChallengeData2016')
+# if __name__ == '__main__':
+#     from datasets.visualize import visualize_dataset_sample
+#     visualize_dataset_sample(ADE20K, '/mnt/d/ADEChallengeData2016')
