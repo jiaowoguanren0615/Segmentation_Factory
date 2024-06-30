@@ -644,6 +644,8 @@ class CrossFormer(nn.Module):
         self.num_features = int(embed_dim * 2 ** (self.num_layers - 1))
         self.mlp_ratio = mlp_ratio
 
+        self.channels = [embed_dim, embed_dim * 2, embed_dim * 4, embed_dim * 8]
+
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
             img_size=img_size, patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim,
@@ -811,6 +813,7 @@ def crossformer_base(**kwargs):
                         crs_interval=crs_interval, **kwargs)
     return model
 
+
 def crossformer_large(**kwargs):
     embed_dim = 128
     depths = [2, 2, 18, 2]
@@ -822,7 +825,7 @@ def crossformer_large(**kwargs):
     return model
 
 # if __name__ == '__main__':
-#     model = crossformer_large()
+#     model = eval('crossformer_base()')
 #     x = torch.randn(1, 3, 224, 224)
 #     feats = model(x)
 #     for y in feats:

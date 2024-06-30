@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from timm.models import register_model
 
 
 ## https://arxiv.org/pdf/2301.00808
