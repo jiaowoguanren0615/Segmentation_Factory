@@ -7,7 +7,6 @@ from pathlib import Path
 from PIL import Image
 from typing import Tuple
 
-
 class COCOStuff(Dataset):
     """
     https://github.com/nightrome/cocostuff

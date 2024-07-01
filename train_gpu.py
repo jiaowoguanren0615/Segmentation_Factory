@@ -46,8 +46,13 @@ def get_args_parser():
     parser.add_argument('--data_len', default=5000, type=int,
                         help='count of your entire data_set. For example: Cityscapes 5000, voc 11530')
     parser.add_argument('--nb_classes', default=19, type=int,
-                        choices=[19, 21, 172, 150],
-                        help='number classes of your dataset')
+                        choices=[19, 21, 172, 151],
+                        help='number classes of your dataset (including background)'
+                             'CityScapes: 19'
+                             'VOC2012: 21'
+                             'cocostuff: 172'
+                             'ADE20K: 151'
+                        )
 
     parser.add_argument('--batch-size', default=4, type=int)
     parser.add_argument("--val_batch_size", type=int, default=1, help='batch size for validation (default: 1)')
