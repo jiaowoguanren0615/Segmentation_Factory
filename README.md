@@ -7,8 +7,7 @@
 conda env create -f environment.yml
 ```
 
-### Download Datasets(including VOC, ADE20K, COCO, COCOStuff, Hubmap, Synapse, CityScapes)
-[Download](https://pan.baidu.com/s/1LLyIlP3sjuoFAwTBaYflRQ?pwd=0615)
+### [Download Datasets(including VOC, ADE20K, COCO, COCOStuff, Hubmap, Synapse, CityScapes)](https://pan.baidu.com/s/1LLyIlP3sjuoFAwTBaYflRQ?pwd=0615)
 
 ## Project Structure
 ```
