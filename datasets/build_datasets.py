@@ -3,6 +3,8 @@ from .ade import ADE20K
 from .cityscapes import Cityscapes
 from .coco_stuff import COCOStuff
 from datasets import extra_transform as et
+from torchvision import transforms as T
+
 
 
 
@@ -17,6 +19,7 @@ def build_dataset(args):
     ])
 
     val_transform = et.ExtCompose([
+        # et.ExtRandomCrop(size=(args.image_size, args.image_size)),
         et.ExtResize(args.image_size),
         et.ExtToTensor(),
         et.ExtNormalize(mean=[0.485, 0.456, 0.406],
@@ -26,7 +29,7 @@ def build_dataset(args):
     assert args.dataset.lower() in ['cityscapes', 'voc', 'cocostuff', 'ade'], 'No support training dataset!'
 
     if args.dataset.lower() == 'voc':
-        args.data_root = './'
+        args.data_root = '/mnt/d/'
         train_dst = VOCSegmentation(root=args.data_root, split='train',
                                     transform=train_transform)
         val_dst = VOCSegmentation(root=args.data_root, split='val',

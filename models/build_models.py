@@ -43,8 +43,8 @@ class SegmentationModel(nn.Module):
 
 # if __name__ == '__main__':
 #     model = SegmentationModel('MiT-B0')
-#     x = torch.randn(2, 3, 512, 512)
+#     x = torch.randn(2, 3, 520, 520)
 #     y = model(x)
 #     print(model)
 #     print(y.shape)
-    # print(model.modules)
+#     print(model.modules)

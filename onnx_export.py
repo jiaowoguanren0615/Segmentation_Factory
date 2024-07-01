@@ -13,7 +13,7 @@ import torch
 import numpy as np
 import onnx
 import models
-from timm.models import create_model
+from models.build_models import SegmentationModel
 
 
 
@@ -26,13 +26,21 @@ parser.add_argument('--output', metavar='ONNX_FILE', default=None, type=str,
 # Model & datasets params
 parser.add_argument('--model', type=str, default='SegFormer-MiT-B0',
                     help='model architecture (default: segformer)')
+parser.add_argument('--backbone', default='MiT-B0', type=str, metavar='MODEL',
+                        choices=['crossformer_tiny', 'crossformer_base', 'crossformer_large', 'crossformer_small',
+                                 'crossformerpp_base', 'crossformerpp_large', 'crossformerpp_small', 'crossformerpp_huge',
+                                 'MiT-B0', 'MiT-B1', 'MiT-B2', 'MiT-B3', 'MiT-B4', 'MiT-B5',
+                                 'convnextv2_base', 'convnextv2_large', 'convnextv2_huge', 'convnextv2_tiny'],
+                        help='Feature extractor Backbones')
+parser.add_argument('--pretrained_backbone', default='', type=str, metavar='MODEL',
+                    help='Backbone pretrained weights path')
 parser.add_argument('--checkpoint', default='./output/SegFormer-MiT-B0_best_model.pth', type=str, metavar='PATH',
                     help='path to checkpoint (default: none)')
 parser.add_argument('--batch-size', default=1, type=int,
                     metavar='N', help='mini-batch size (default: 1)')
-parser.add_argument('--img-size', default=518, type=int,
+parser.add_argument('--img-size', default=512, type=int,
                     metavar='N', help='Input image dimension, uses model default if empty')
-parser.add_argument('--nb-classes', type=int, default=19,
+parser.add_argument('--nb_classes', type=int, default=19,
                     help='Number classes in datasets')
 
 parser.add_argument('--opset', type=int, default=10,
@@ -64,11 +72,10 @@ def main():
     print("==> Creating PyTorch {} model".format(args.model))
     # NOTE exportable=True flag disables autofn/jit scripted activations and uses Conv2dSameExport layers
     # for models using SAME padding
-    model = create_model(
-        args.model,
-        num_classes=args.nb_classes,
-        # exportable=True
-    )
+    model = SegmentationModel(args.backbone,
+                              pretrained_backbone=args.pretrained_backbone,
+                              num_classes=args.nb_classes,
+                              args=args)
 
     model.load_state_dict(torch.load(args.checkpoint)['model_state'])
     model.eval()
@@ -95,7 +102,7 @@ def main():
     else:
         export_type = torch.onnx.OperatorExportTypes.ONNX
 
-    torch_out = torch.onnx.dynamo_export(
+    torch_out = torch.onnx._export(
         model, example_input, args.output, export_params=True, verbose=True, input_names=input_names,
         output_names=output_names, keep_initializers_as_inputs=args.keep_init, dynamic_axes=dynamic_axes,
         opset_version=args.opset, operator_export_type=export_type)

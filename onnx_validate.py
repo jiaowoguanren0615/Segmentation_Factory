@@ -12,16 +12,19 @@ import torch
 import onnxruntime
 from util.utils import AverageMeter
 import time
-from datasets import build_dataset
 from util.metrics import Metrics
 import util.utils as utils
+from datasets import VOCSegmentation, COCOStuff, Cityscapes, ADE20K
+from datasets import extra_transform as et
 
 
 
 parser = argparse.ArgumentParser(description='Pytorch ONNX Validation')
 parser.add_argument("--data_root", type=str, default='/mnt/d/CityScapesDataset',
                         help="path to CityScapesDataset Dataset")
-parser.add_argument('--nb-classes', type=int, default=19,
+parser.add_argument("--dataset", type=str, default='cityscapes',
+                    choices=['cityscapes', 'voc', 'cocostuff', 'ade'])
+parser.add_argument('--nb_classes', type=int, default=19,
                     help='Number classes in datasets')
 parser.add_argument('--onnx-input', default='./SegFormer-MiT-B0_optim.onnx', type=str, metavar='PATH',
                     help='path to onnx model/weights file')
@@ -33,7 +36,7 @@ parser.add_argument('--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers (default: 2)')
 parser.add_argument('--batch-size', default=4, type=int,
                     metavar='N', help='mini-batch size (default: 4), as same as the train_batch_size in train_gpu.py')
-parser.add_argument('--image_size', default=518, type=int,
+parser.add_argument('--image_size', default=512, type=int,
                     metavar='N', help='Input image dimension, uses model default if empty')
 parser.add_argument('--mean', type=float, nargs='+', default=None, metavar='MEAN',
                     help='Override mean pixel value of datasets')
@@ -45,15 +48,62 @@ parser.add_argument('--interpolation', default='', type=str, metavar='NAME',
                     help='Image resize interpolation type (overrides model)')
 parser.add_argument('--tf-preprocessing', dest='tf_preprocessing', action='store_true',
                     help='use tensorflow mnasnet preporcessing')
-parser.add_argument('--print-freq', '-p', default=10, type=int,
-                    metavar='N', help='print frequency (default: 10)')
+parser.add_argument('--print-freq', '-p', default=50, type=int,
+                    metavar='N', help='print frequency (default: 50)')
+
+
+def build_dataset(args):
+    train_transform = et.ExtCompose([
+        et.ExtRandomCrop(size=(args.image_size, args.image_size)),
+        et.ExtColorJitter(brightness=0.5, contrast=0.5, saturation=0.5),
+        et.ExtRandomHorizontalFlip(),
+        et.ExtToTensor(),
+        et.ExtNormalize(mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225]),
+    ])
+
+    val_transform = et.ExtCompose([
+        et.ExtRandomCrop(size=(args.image_size, args.image_size)),
+        et.ExtResize(args.image_size),
+        et.ExtToTensor(),
+        et.ExtNormalize(mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225]),
+    ])
+
+    assert args.dataset.lower() in ['cityscapes', 'voc', 'cocostuff', 'ade'], 'No support training dataset!'
+
+    if args.dataset.lower() == 'voc':
+        args.data_root = '/mnt/d/'
+        train_dst = VOCSegmentation(root=args.data_root, split='train',
+                                    transform=train_transform)
+        val_dst = VOCSegmentation(root=args.data_root, split='val',
+                                  transform=val_transform)
+    elif args.dataset.lower() == 'cityscapes':
+        train_dst = Cityscapes(root=args.data_root, split='train',
+                               transform=train_transform)
+        val_dst = Cityscapes(root=args.data_root, split='val',
+                             transform=val_transform)
+    elif args.dataset.lower() == 'cocostuff':
+        args.data_root = '/mnt/d/CocoStuff2017'
+        train_dst = COCOStuff(root=args.data_root, split='train',
+                               transform=train_transform)
+        val_dst = COCOStuff(root=args.data_root, split='val',
+                             transform=val_transform)
+    elif args.dataset.lower() == 'ade':
+        args.data_root = '/mnt/d/ADEChallengeData2016'
+        train_dst = ADE20K(root=args.data_root, split='train',
+                              transform=train_transform)
+        val_dst = ADE20K(root=args.data_root, split='val',
+                            transform=val_transform)
+    return train_dst, val_dst
+
 
 
 def main():
     args = parser.parse_args()
     args.gpu_id = 0
 
-    args.input_size = args.img_size
+    args.input_size = args.image_size
 
     # Set graph optimization level
     sess_options = onnxruntime.SessionOptions()
