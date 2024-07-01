@@ -29,7 +29,6 @@ def build_dataset(args):
     assert args.dataset.lower() in ['cityscapes', 'voc', 'cocostuff', 'ade'], 'No support training dataset!'
 
     if args.dataset.lower() == 'voc':
-        args.data_root = '/mnt/d/'
         train_dst = VOCSegmentation(root=args.data_root, split='train',
                                     transform=train_transform)
         val_dst = VOCSegmentation(root=args.data_root, split='val',
@@ -40,13 +39,11 @@ def build_dataset(args):
         val_dst = Cityscapes(root=args.data_root, split='val',
                              transform=val_transform)
     elif args.dataset.lower() == 'cocostuff':
-        args.data_root = '/mnt/d/CocoStuff2017'
         train_dst = COCOStuff(root=args.data_root, split='train',
                                transform=train_transform)
         val_dst = COCOStuff(root=args.data_root, split='val',
                              transform=val_transform)
     elif args.dataset.lower() == 'ade':
-        args.data_root = '/mnt/d/ADEChallengeData2016'
         train_dst = ADE20K(root=args.data_root, split='train',
                               transform=train_transform)
         val_dst = ADE20K(root=args.data_root, split='val',
