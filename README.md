@@ -37,7 +37,7 @@ conda env create -f environment.yml
 ```
 
 ## Precautions
-Before you use the code to train your own data set, please first enter the ___train_gpu.py___ file and modify the ___data_root___,  ___data_set___, ___batch_size___, ___num_workers___, ___backbone___, ___seg_head___ and ___nb_classes___ parameters.  
+Before you use the code to train your own data set, please first enter the ___train_gpu.py___ file and modify the ___data_root___,  ___dataset___, ___batch_size___, ___num_workers___, ___backbone___, ___seg_head___ and ___nb_classes___ parameters.  
 
 ## Train this model
 ### Parameters Meaning:
