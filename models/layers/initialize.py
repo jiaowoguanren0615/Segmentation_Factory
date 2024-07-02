@@ -2,6 +2,16 @@ import torch
 import math
 import warnings
 from torch import nn, Tensor
+from inspect import signature
+
+
+def build_kwargs_from_config(config: dict, target_func: callable) -> dict[str, any]:
+    valid_keys = list(signature(target_func).parameters)
+    kwargs = {}
+    for key in config:
+        if key in valid_keys:
+            kwargs[key] = config[key]
+    return kwargs
 
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
