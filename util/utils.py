@@ -342,7 +342,6 @@ def cleanup_ddp():
         dist.destroy_process_group()
 
 
-
 def time_sync() -> float:
     if torch.cuda.is_available():
         torch.cuda.synchronize()
