@@ -14,7 +14,7 @@ conda env create -f environment.yml
 ├── datasets: Load datasets
     ├── ade.py: build ade20K dataset
     ├── cityscapes.py: class of cityscapes
-    ├── cocostuff.py: class of cityscapes
+    ├── cocostuff.py: class of cocostuff
     ├── extra_transforms.py: image data aug methods
     ├── visualize.py: visualize a batch of valid data(original RGB image & mask)
     ├── voc.py: class of voc
