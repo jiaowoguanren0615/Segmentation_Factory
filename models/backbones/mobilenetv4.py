@@ -307,6 +307,13 @@ class MobileNetV4(nn.Module):
         self.num_classes = num_classes
         self.spec = MODEL_SPECS[self.model]
 
+        first_channel = self.spec["layer1"]["block_specs"][-1][1]
+        second_channel = self.spec["layer2"]["block_specs"][-1][1]
+        third_channel = self.spec["layer3"]["block_specs"][-1][1]
+        forth_channel = self.spec["layer4"]["block_specs"][-1][1]
+        fifth_channel = self.spec["layer5"]["block_specs"][-1][1]
+        self.channels = [first_channel, second_channel, third_channel, forth_channel, fifth_channel]
+
         # conv0
         self.conv0 = build_blocks(self.spec["conv0"])
         # layer1
@@ -379,10 +386,10 @@ def mobilenetv4_hybrid_large(pretrained=False, pretrained_cfg=None, pretrained_c
     return model
 
 
-if __name__ == '__main__':
-    model = mobilenetv4_medium()
-    print("Check output shape ...")
-    x = torch.rand(1, 3, 224, 224)
-    y = model(x)
-    for i in y:
-        print(i.shape)
+# if __name__ == '__main__':
+#     model = mobilenetv4_medium()
+#     print("Check output shape ...")
+#     x = torch.rand(1, 3, 224, 224)
+#     y = model(x)
+#     for i in y:
+#         print(i.shape)

@@ -42,9 +42,9 @@ class SegmentationModel(nn.Module):
 
 
 # if __name__ == '__main__':
-#     model = SegmentationModel('MiT-B0')
-#     x = torch.randn(2, 3, 520, 520)
+#     model = SegmentationModel('kat_tiny_swish_patch16_224').cuda()
+#     x = torch.randn(2, 3, 224, 224).cuda()
 #     y = model(x)
-#     print(model)
+#     # print(model)
 #     print(y.shape)
-#     print(model.modules)
+    # print(model.modules)
