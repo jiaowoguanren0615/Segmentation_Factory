@@ -219,7 +219,11 @@ class MiT(nn.Module):
 
 
 # if __name__ == '__main__':
-#     model = MiT('B1')
+#
+#     checkpoint = torch.load('./mit_b0.pth', map_location='cpu')
+#     model = MiT('B0')
+#     model.load_state_dict(checkpoint, strict=False)
+#     print('Pass')
     # print(model.channels)
 #     x = torch.zeros(1, 3, 224, 224)
 #     outs = model(x)
