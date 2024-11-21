@@ -5,3 +5,5 @@ from .extra_transform import *
 from .visualize import *
 from .voc import *
 from .build_datasets import *
+from .synapse import Synapse_dataset
+from .kvasir import KvasirDataSet
