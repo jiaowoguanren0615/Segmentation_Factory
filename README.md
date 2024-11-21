@@ -9,6 +9,10 @@ conda env create -f environment.yml
 
 ### [Download Datasets(including VOC, ADE20K, COCO, COCOStuff, Hubmap, Synapse, CityScapes)](https://pan.baidu.com/s/1LLyIlP3sjuoFAwTBaYflRQ?pwd=0615)
 
+[CVC-ClinicDB Dataset](https://www.kaggle.com/datasets/balraj98/cvcclinicdb?select=PNG)  
+[Kvasir Dataset](https://www.kaggle.com/datasets/abdallahwagih/kvasir-dataset-for-classification-and-segmentation?select=kvasir-seg)
+
+
 ## Project Structure
 ```
 ├── datasets: Load datasets
