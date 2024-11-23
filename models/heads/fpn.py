@@ -4,6 +4,8 @@ from torch.nn import functional as F
 from models.layers import ConvModule
 
 
+__all__ = ['FPNHead']
+
 class FPNHead(nn.Module):
     """Panoptic Feature Pyramid Networks
     https://arxiv.org/abs/1901.02446
@@ -25,7 +27,8 @@ class FPNHead(nn.Module):
         features = features[::-1]
         out = self.lateral_convs[0](features[0])
         for i in range(1, len(features)):
-            # out = F.interpolate(out, scale_factor=2.0, mode='nearest')
+            if out.shape[2:] != self.lateral_convs[i](features[i]).shape[2: ]:
+                out = F.interpolate(out, size=self.lateral_convs[i](features[i]).shape[2:], mode='nearest')
             # print(out.shape)  ## torch.Size([2, 128, 14, 14])
             # print(self.lateral_convs[i](features[i]).shape) ## torch.Size([2, 128, 7, 7])
             out = out + self.lateral_convs[i](features[i])

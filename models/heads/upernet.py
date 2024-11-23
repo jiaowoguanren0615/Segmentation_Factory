@@ -6,6 +6,8 @@ from models.layers import ConvModule
 from models.modules import PPM
 
 
+__all__ = ['UPerHead']
+
 class UPerHead(nn.Module):
     """Unified Perceptual Parsing for Scene Understanding
     https://arxiv.org/abs/1807.10221

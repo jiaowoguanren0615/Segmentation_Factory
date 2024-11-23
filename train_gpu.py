@@ -39,7 +39,7 @@ def get_args_parser():
                         help="path to CityScapes Dataset")
     parser.add_argument("--dataset", type=str, default='cityscapes',
                         choices=['cityscapes', 'voc', 'cocostuff', 'ade', 'kvasir', 'synapse'])
-    parser.add_argument("--image_size", type=int, default=512, help="input size")
+    parser.add_argument("--image_size", type=int, default=1024, help="input size")
     parser.add_argument("--ignore_label", type=int, default=255, help="the dataset ignore_label")
     parser.add_argument("--ignore_index", type=int, default=255, help="the dataset ignore_index")
     parser.add_argument("--dice", type=bool, default=True, help="Calculate Dice Loss")
@@ -75,7 +75,7 @@ def get_args_parser():
     parser.add_argument("--val_print_freq", type=int, default=100)
 
     # Model parameters
-    parser.add_argument('--backbone', default='MiT-B0', type=str, metavar='MODEL',
+    parser.add_argument('--backbone', default='MiT-B2', type=str, metavar='MODEL',
                         choices=['crossformer_tiny', 'crossformer_base', 'crossformer_large', 'crossformer_small',
                                  'crossformerpp_base', 'crossformerpp_large', 'crossformerpp_small', 'crossformerpp_huge',
                                  'MiT-B0', 'MiT-B1', 'MiT-B2', 'MiT-B3', 'MiT-B4', 'MiT-B5',
@@ -85,8 +85,8 @@ def get_args_parser():
     parser.add_argument('--pretrained_backbone', default='', type=str, metavar='MODEL',
                         help='Backbone pretrained weights path')
 
-    parser.add_argument('--heads', default='segformer', type=str, metavar='MODEL',
-                        choices=['fpn', 'segformer', 'upernet'],
+    parser.add_argument('--heads', default='SegFormerHead', type=str, metavar='MODEL',
+                        choices=['FPNHead', 'MaskRCNNSegmentationHead', 'SegFormerHead', 'UPerHead'],
                         help='Segmentation Head')
 
     # Optimizer parameters
@@ -146,7 +146,7 @@ def get_args_parser():
 
 
     # Finetuning params
-    parser.add_argument('--finetune', default='',
+    parser.add_argument('--finetune', default='./segformer.b2.1024x1024.city.160k.pth',
                         help='finetune from checkpoint')
     parser.add_argument('--encoder_pretrain_weights', type=str, default='/mnt/d/PythonCode/DPT/DepthAnythingV2/dinov2_vits14_pretrain.pth')
     parser.add_argument('--freeze_layers', type=bool, default=True, help='freeze layers')
@@ -226,8 +226,8 @@ def main(args):
     model = SegmentationModel(args.backbone,
                               pretrained_backbone=args.pretrained_backbone,
                               num_classes=args.nb_classes,
+                              seg_head=args.heads,
                               args=args)
-
     model = model.to(device)
 
     model_without_ddp = model
@@ -245,7 +245,7 @@ def main(args):
         checkpoint_model = checkpoint
         # state_dict = model.state_dict()
         for k in list(checkpoint_model.keys()):
-            if 'scratch.output_conv2' in k:
+            if 'linear_pred' in k: # DepthAnythingV2 & SegFormer
                 print(f"Removing key {k} from pretrained checkpoint")
                 del checkpoint_model[k]
 
@@ -253,9 +253,10 @@ def main(args):
         print(msg)
         if args.freeze_layers:
             for name, para in model.named_parameters():
-                if 'scratch.output_conv2' not in name:
+                if 'linear_pred' not in name:
                     para.requires_grad_(False)
                 else:
+                    para.requires_grad_(True)
                     print('training {}'.format(name))
 
     model.to(device)
@@ -265,7 +266,7 @@ def main(args):
     print(f'Model: {model}\nNumber of parameters: {n_parameters}')
     print('**************************************\n')
 
-    optimizer = create_optimizer(args, model_without_ddp)
+    optimizer = torch.optim.AdamW(model_without_ddp.parameters(), lr=2e-4, weight_decay=args.weight_decay) if args.finetune else create_optimizer(args, model_without_ddp)
     loss_scaler = NativeScaler()
     lr_scheduler, _ = create_scheduler(args, optimizer)
 
@@ -359,9 +360,9 @@ def main(args):
                     "Acc": mean_acc,
                     "scaler": loss_scaler.state_dict()
                 }
-                torch.save(checkpoint_save, f'{args.save_weights_dir}/{model}_best_model.pth')
+                torch.save(checkpoint_save, f'{args.save_weights_dir}/{args.backbone}_{args.heads}_best_model.pth')
                 print('******************Save Checkpoint******************')
-                print(f'Save weights to {args.save_weights_dir}/{model}_best_model.pth\n')
+                print(f'Save weights to {args.save_weights_dir}/{args.backbone}_{args.heads}_best_model.pth\n')
         else:
             print('*********No improving mIOU, No saving checkpoint*********')
 

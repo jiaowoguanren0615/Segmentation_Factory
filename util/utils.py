@@ -316,6 +316,11 @@ def load_model(modelpath, model: nn.Module):
     for fine-tuning on a different resolution.
     '''
     checkpoint = torch.load(modelpath, map_location='cpu')
+    if 'state_dict' in checkpoint.keys():
+        checkpoint = checkpoint['state_dict']
+    if 'segformer' in modelpath:
+        del checkpoint['decode_head.conv_seg.weight']
+        del checkpoint['decode_head.conv_seg.bias']
     return checkpoint
 
 

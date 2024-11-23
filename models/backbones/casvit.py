@@ -184,8 +184,8 @@ class RCViT(nn.Module):
                  init_cfg=None, pretrained=None, distillation=True, **kwargs):
         super().__init__()
 
-        if not fork_feat:
-            self.num_classes = num_classes
+        self.channels = embed_dims
+        self.num_classes = num_classes
         self.fork_feat = fork_feat
 
         self.patch_embed = stem(3, embed_dims[0])

@@ -71,7 +71,7 @@ def train_one_epoch(model, optimizer, dataloader,
 
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def evaluate(args, model, dataloader, device, print_freq, writer=None):
     model.eval()
 

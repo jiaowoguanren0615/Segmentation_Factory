@@ -643,6 +643,7 @@ class CrossFormerPP(nn.Module):
         self.patch_norm = patch_norm
         self.num_features = int(embed_dim * 2 ** (self.num_layers - 1))
         self.mlp_ratio = mlp_ratio
+        self.channels = [embed_dim, embed_dim * 2, embed_dim * 4, embed_dim * 8]
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(

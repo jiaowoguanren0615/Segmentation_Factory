@@ -131,6 +131,7 @@ class ConvNeXtV2(nn.Module):
                  ):
         super().__init__()
         self.depths = depths
+        self.channels = dims
         self.downsample_layers = nn.ModuleList()  # stem and 3 intermediate downsampling conv layers
         stem = nn.Sequential(
             nn.Conv2d(in_chans, dims[0], kernel_size=4, stride=4),

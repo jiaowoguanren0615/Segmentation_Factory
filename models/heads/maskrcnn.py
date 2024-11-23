@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+__all__ = ['MaskRCNNSegmentationHead']
+
+
 class MaskRCNNSegmentationHead(nn.Module):
     def __init__(self, in_channels_list, channel=256, num_classes=19, dropout_rate=0.3):
         super(MaskRCNNSegmentationHead, self).__init__()
