@@ -1,6 +1,6 @@
 import torch
 import argparse
-import yaml
+import os
 import math
 from torch import Tensor
 from torch.nn import functional as F
@@ -8,7 +8,7 @@ from pathlib import Path
 from torchvision import io
 from torchvision import transforms as T
 from models.build_models import SegmentationModel
-from datasets import Cityscapes
+from datasets import Cityscapes, VOCSegmentation, COCOStuff, ADE20K
 from datasets.visualize import draw_text
 from rich.console import Console
 from PIL import Image
@@ -16,18 +16,50 @@ from PIL import Image
 
 console = Console()
 
+
+def get_args_parser():
+    parser = argparse.ArgumentParser(
+        'Segmentation Models Evaluation Script', add_help=False)
+
+    # Dataset parameters
+    parser.add_argument("--data_root", type=str, default='/mnt/d/CityScapesDataset/leftImg8bit/train/aachen/aachen_000000_000019_leftImg8bit.png',
+                        help="path to CityScapes Dataset for prediction")
+    parser.add_argument("--dataset", type=str, default='Cityscapes',
+                        choices=['Cityscapes', 'VOCSegmentation', 'COCOStuff', 'ADE20K'])
+    parser.add_argument("--img_size", type=int, default=1024, help="input size")
+
+    # Model parameters
+    parser.add_argument('--backbone', default='MiT-B2', type=str, metavar='MODEL',
+                        choices=['crossformer_tiny', 'crossformer_base', 'crossformer_large', 'crossformer_small',
+                                 'crossformerpp_base', 'crossformerpp_large', 'crossformerpp_small', 'crossformerpp_huge',
+                                 'MiT-B0', 'MiT-B1', 'MiT-B2', 'MiT-B3', 'MiT-B4', 'MiT-B5',
+                                 'convnextv2_base', 'convnextv2_large', 'convnextv2_huge', 'convnextv2_tiny'],
+                        help='Feature extractor Backbones')
+
+    parser.add_argument('--heads', default='SegFormerHead', type=str, metavar='MODEL',
+                        choices=['FPNHead', 'MaskRCNNSegmentationHead', 'SegFormerHead', 'UPerHead'],
+                        help='Segmentation Head')
+
+    parser.add_argument('--weight_file', default='./segformer.b2.1024x1024.city.160k.pth',
+                        help='model weight file')
+    parser.add_argument('--save_pred_picture', default='./predict',
+                        help='path where to save, empty for no saving')
+    parser.add_argument('--device', default='cuda',
+                        help='device to use for training / testing')
+    return parser
+
 class SemSeg:
-    def __init__(self, cfg=None) -> None:
+    def __init__(self, args=None) -> None:
         # inference device cuda or cpu
-        self.device = torch.device('cuda')
+        self.device = args.device
 
         # get dataset classes' colors and labels
-        self.palette = eval('Cityscapes').PALETTE
-        self.labels = eval('Cityscapes').CLASSES
+        self.palette = eval(args.dataset).PALETTE
+        self.labels = eval(args.dataset).CLASSES
 
         # initialize the model and load weights and send to device
-        self.model = SegmentationModel('MiT-B2')
-        ckpt = torch.load('./segformer.b2.1024x1024.city.160k.pth')['state_dict']
+        self.model = SegmentationModel(args.backbone)
+        ckpt = torch.load(args.weight_file)['state_dict']
         del ckpt['decode_head.conv_seg.weight']
         del ckpt['decode_head.conv_seg.bias']
         self.model.load_state_dict(ckpt)
@@ -35,7 +67,7 @@ class SemSeg:
         self.model.eval()
 
         # preprocess parameters and transformation pipeline
-        self.size = [1024, 1024]
+        self.size = [args.img_size, args.img_size]
         self.tf_pipeline = T.Compose([
             T.Lambda(lambda x: x / 255),
             T.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
@@ -75,7 +107,7 @@ class SemSeg:
     def model_forward(self, img: Tensor) -> Tensor:
         return self.model(img)
 
-    def predict(self, img_fname: str, overlay: bool) -> Image:
+    def predict(self, img_fname: str, overlay: bool = True) -> Image:
         image = io.read_image(img_fname)
         img = self.preprocess(image)
         seg_map = self.model_forward(img)
@@ -83,20 +115,16 @@ class SemSeg:
         return seg_map
 
 
-if __name__ == '__main__':
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--cfg', type=str, default='configs/ade20k.yaml')
-    # args = parser.parse_args()
 
-
-    test_file = Path('./assests/Cityscapes')
+def main(args):
+    test_file = Path(args.data_root)
     if not test_file.exists():
         raise FileNotFoundError(test_file)
 
-    save_dir = Path('predict') / 'test_results'
+    save_dir = Path(args.save_pred_picture) / f'{args.dataset}_test_results'
     save_dir.mkdir(exist_ok=True)
 
-    semseg = SemSeg()
+    semseg = SemSeg(args)
 
     with console.status("[bright_green]Processing..."):
         if test_file.is_file():
@@ -111,3 +139,16 @@ if __name__ == '__main__':
                 segmap.save(save_dir / f"{str(file.stem)}.png")
 
     console.rule(f"[cyan]Segmentation results are saved in `{save_dir}`")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        'Segmentation Models Evaluation Script', parents=[get_args_parser()])
+    args = parser.parse_args()
+
+    if not os.path.exists(args.save_pred_picture):
+        os.mkdir(args.save_pred_picture)
+
+    main(args)
+
+    torch.cuda.empty_cache()
