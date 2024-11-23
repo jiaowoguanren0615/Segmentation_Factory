@@ -111,6 +111,30 @@ class VOCSegmentation(data.Dataset):
         (0, 64, 128)  # TV/Monitor
     ])
 
+    CLASSES = [
+        "background"
+        "person",
+        "bird",
+        "cat",
+        "cow",
+        "dog",
+        "horse",
+        "sheep",
+        "aeroplane",
+        "bicycle",
+        "boat",
+        "bus",
+        "car",
+        "motorbike",
+        "train",
+        "bottle",
+        "chair",
+        "diningtable",
+        "pottedplant",
+        "sofa",
+        "tvmonitor"
+    ]
+
     ## VOC2010 PALETTE
     # PALETTE = torch.tensor([
     #     [180, 120, 120], [6, 230, 230], [80, 50, 50],
@@ -194,7 +218,6 @@ class VOCSegmentation(data.Dataset):
         image = Image.open(self.images[index]).convert('RGB')
         target = Image.open(self.masks[index])
 
-
         ## TODO step 2: Comment these follow four lines code
         # img_path = str(self.images[index])
         # lbl_path = str(self.masks[index])
@@ -234,7 +257,6 @@ def download_extract(url, root, filename, md5):
     download_url(url, root, filename, md5)
     with tarfile.open(os.path.join(root, filename), "r") as tar:
         tar.extractall(path=root)
-
 
 # if __name__ == '__main__':
 #     from datasets.visualize import visualize_dataset_sample

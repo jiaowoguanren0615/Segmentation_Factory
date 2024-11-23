@@ -352,7 +352,7 @@ def main(args):
             print(f'Max mIOU: {best_mIoU}\n')
             if utils.is_main_process():
                 checkpoint_save = {
-                    "state_dict": model_without_ddp.state_dict(),
+                    "model_state": model_without_ddp.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
                     "scheduler_state": lr_scheduler.state_dict(),
                     "best_mIoU": mean_iou,

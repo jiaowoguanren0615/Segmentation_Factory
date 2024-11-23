@@ -59,9 +59,17 @@ class SemSeg:
 
         # initialize the model and load weights and send to device
         self.model = SegmentationModel(args.backbone)
-        ckpt = torch.load(args.weight_file)['state_dict']
+        ckpt = torch.load(args.weight_file)
+
+        if 'model_state' in ckpt.keys():
+            ckpt = ckpt['model_state']
+        else:
+            ckpt = ckpt['state_dict']
+
+        ## TODO: For Nvidia official Segformer weights file, comment these following two lines code if you use your own weight file
         del ckpt['decode_head.conv_seg.weight']
         del ckpt['decode_head.conv_seg.bias']
+
         self.model.load_state_dict(ckpt)
         self.model = self.model.to(self.device)
         self.model.eval()
