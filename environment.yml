@@ -21,3 +21,5 @@ dependencies:
       - torchinfo==1.7.2
       - torchvision==0.15.2+cu118
       - transformers==4.28.1
+      - rich==13.9.4
+      - einops==0.8.0

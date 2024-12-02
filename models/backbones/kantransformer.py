@@ -24,6 +24,7 @@ from timm.models.layers import to_2tuple
 import numpy as np
 
 from kat_rational import KAT_Group
+# for install kat_rational, reference: https://github.com/Adamdad/rational_kat_cu
 
 
 def calculate_gain(nonlinearity, param=None):
