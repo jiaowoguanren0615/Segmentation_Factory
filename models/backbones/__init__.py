@@ -9,3 +9,5 @@ from .mobilenetv2 import *
 from .mobilenetv3 import *
 from .mobilenetv4 import *
 from .kantransformer import *
+from .feature_pyramid_network import *
+from .resnet import *

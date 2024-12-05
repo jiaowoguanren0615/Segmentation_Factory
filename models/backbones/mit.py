@@ -220,13 +220,13 @@ class MiT(nn.Module):
 
 # if __name__ == '__main__':
 #
-#     checkpoint = torch.load('../../mit_b0.pth', map_location='cpu')
+#     # checkpoint = torch.load('../../mit_b0.pth', map_location='cpu')
 #     model = MiT('B0')
-#     del checkpoint['head.weight'], checkpoint['head.bias']
-#     model.load_state_dict(checkpoint)
-#     print('Pass')
-    # print(model.channels)
-#     x = torch.zeros(1, 3, 224, 224)
+#     # del checkpoint['head.weight'], checkpoint['head.bias']
+#     # model.load_state_dict(checkpoint)
+#     # print('Pass')
+#     print(model.channels)
+#     x = torch.randn(1, 3, 224, 224)
 #     outs = model(x)
 #     for y in outs:
 #         print(y.shape)
