@@ -7,7 +7,7 @@ import os
 
 head_dict = {
     'FPNHead': FPNHead,
-    'MaskRCNNSegmentationHead': MaskRCNNSegmentationHead,
+    'MaskRCNNSegmentationHead': MaskRCNNHeads,
     'SegFormerHead': SegFormerHead,
     'UPerHead': UPerHead,
 }
