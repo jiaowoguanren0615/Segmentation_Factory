@@ -11,6 +11,6 @@ from .mobilenetv4 import *
 from .mobilenetv4_utils import *
 from .mobilenetv4_blocks import *
 from .mobilenetv4_config import *
-# from .kantransformer import *
+from .kantransformer import *
 from .feature_pyramid_network import *
 from .resnet import *
