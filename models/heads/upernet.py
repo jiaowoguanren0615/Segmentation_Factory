@@ -32,6 +32,7 @@ class UPerHead(nn.Module):
         self.conv_seg = nn.Conv2d(channel, num_classes, 1)
 
     def forward(self, features: Tuple[Tensor, Tensor, Tensor, Tensor]) -> Tensor:
+        # print(f'features: {features[-1].shape}')
         f = self.ppm(features[-1])
         fpn_features = [f]
 

@@ -26,7 +26,17 @@ class SegmentationModel(nn.Module):
         else:
             self.backbone = eval(self.backbone_name + '()')
 
-        # print(self.backbone.channels) # [192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 192]
+        if 'mobilenetv4' in self.backbone_name:
+            self.spec = MODEL_SPECS[self.backbone_name]
+
+            first_channel = self.spec["conv0"]["block_specs"][0][1]
+            second_channel = self.spec["layer1"]["block_specs"][-1][1]
+            third_channel = self.spec["layer2"]["block_specs"][-1][1]
+            forth_channel = self.spec["layer3"]["block_specs"][-1][1]
+            fifth_channel = self.spec["layer5"]["block_specs"][0][1]
+            self.backbone.channels = [first_channel, second_channel, third_channel, forth_channel, fifth_channel]
+            # print(self.backbone.channels)
+
 
         if 'MiT' in backbone:
             self.decode_head = SegFormerHead(self.backbone.channels, 256 if 'B0' in variant or 'B1' in variant else 768,
@@ -51,25 +61,27 @@ class SegmentationModel(nn.Module):
 
     def forward(self, x):
         y = self.backbone(x)
+        # for i in y:
+        #     print(i.shape)
         y = self.decode_head(y)
         y = F.interpolate(y, size=x.shape[2:], mode='bilinear', align_corners=False)
         return y
 
 
-if __name__ == '__main__':
-    # model = SegmentationModel('kat_tiny_swish_patch16_224', seg_head='UPerHead').cuda()
-    # model = SegmentationModel('MiT-B2').cuda()
-    # ckpt = torch.load('../segformer.b2.1024x1024.city.160k.pth')['state_dict']
-    # # TODO: Must remember that delete the additional layer(decode_head.conv_seg) when you load the segformer-mit models weight
-    # del ckpt['decode_head.conv_seg.weight']
-    # del ckpt['decode_head.conv_seg.bias']
-
-    # print(ckpt.keys())
-    # model.load_state_dict(ckpt)
-    # x = torch.randn(2, 3, 1024, 1024).cuda()
-    # model.eval()
-    # y = model(x)
-    # print(model)
-    # print(y.shape)
-    # print(model.modules)
-    print('pass!')
+# if __name__ == '__main__':
+#     model = SegmentationModel('mobilenetv4_large', seg_head='UPerHead').cuda()
+#     # model = SegmentationModel('MiT-B2').cuda()
+#     # ckpt = torch.load('../segformer.b2.1024x1024.city.160k.pth')['state_dict']
+#     # # TODO: Must remember that delete the additional layer(decode_head.conv_seg) when you load the segformer-mit models weight
+#     # del ckpt['decode_head.conv_seg.weight']
+#     # del ckpt['decode_head.conv_seg.bias']
+#
+#     # print(ckpt.keys())
+#     # model.load_state_dict(ckpt)
+#     x = torch.randn(2, 3, 384, 384).cuda()
+#     model.eval()
+#     y = model(x)
+#     # print(model)
+#     print(y.shape)
+#     # print(model.modules)
+#     print('pass!')

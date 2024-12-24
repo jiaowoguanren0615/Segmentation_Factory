@@ -24,6 +24,7 @@ from timm.models._features import FeatureInfo, FeatureHooks, feature_take_indice
 from timm.models._manipulate import checkpoint_seq
 from timm.models._registry import generate_default_cfgs, register_model
 
+from models.backbones.mobilenetv4_config import MODEL_SPECS
 
 __all__ = ['MobileNetV4', 'MobileNetV4Features']
 
@@ -854,7 +855,7 @@ def mobilenetv4_conv_medium(pretrained=False, pretrained_cfg=None, pretrained_cf
 
 
 @register_model
-def mobilenetv4_conv_large(pretrained=False, pretrained_cfg=None, pretrained_cfg_overlay=None, **kwargs) -> MobileNetV4:
+def mobilenetv4_large(pretrained=False, pretrained_cfg=None, pretrained_cfg_overlay=None, **kwargs) -> MobileNetV4:
     """ MobileNet V4 """
     model = _gen_mobilenet_v4('mobilenetv4_conv_large', 1.0, pretrained=pretrained, **kwargs)
     return model
@@ -909,10 +910,10 @@ def mobilenetv4_hybrid_large_075(pretrained=False, pretrained_cfg=None, pretrain
     return model
 
 
-if __name__ == '__main__':
-    net = mobilenetv4_conv_large(num_classes=1000)
-    X = torch.randn(2, 3, 512, 512)
-    output = net(X)
-    for i in output:
-        print(i.shape)
+# if __name__ == '__main__':
+#     net = mobilenetv4_large(num_classes=1000)
+#     X = torch.randn(2, 3, 512, 512)
+#     output = net(X)
+#     for i in output:
+#         print(i.shape)
 
