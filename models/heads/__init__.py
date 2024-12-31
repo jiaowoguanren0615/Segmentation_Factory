@@ -1,3 +1,4 @@
+from .deeplabv3 import *
 from .fpn import *
 from .segformer import *
 from .upernet import *

@@ -3,22 +3,24 @@ from models.heads import *
 import torch.nn as nn
 import torch
 import os
+from models.base_model import BaseSegModel
 
 
 head_dict = {
     'FPNHead': FPNHead,
     'MaskRCNNSegmentationHead': MaskRCNNHeads,
     'SegFormerHead': SegFormerHead,
-    'UPerHead': UPerHead,
+    'UPerHead': UPerHead
 }
 
 
-class SegmentationModel(nn.Module):
+class SegmentationModel(BaseSegModel):
     def __init__(self, backbone: str = 'MiT-B0', pretrained_backbone='', num_classes: int = 19,
-                 seg_head: str = 'UPerHead', **kwargs):
-        super(SegmentationModel, self).__init__()
+                 seg_head: str = 'UPerHead', aux_for_deeplab: bool = False, **kwargs):
+        super(SegmentationModel, self).__init__(backbone=backbone, num_classes=num_classes, seg_head=seg_head, **kwargs)
         self.backbone_name = backbone
         self.head_name = seg_head
+        self.aux_for_deeplab = aux_for_deeplab
 
         if 'MiT' in self.backbone_name:
             backbone, variant = backbone.split('-')
@@ -41,10 +43,15 @@ class SegmentationModel(nn.Module):
         if 'MiT' in backbone:
             self.decode_head = SegFormerHead(self.backbone.channels, 256 if 'B0' in variant or 'B1' in variant else 768,
                                         num_classes)
+
+        if 'deeplabv3' in seg_head.lower():
+            self.decode_head = DeepLabV3(self.backbone.channels[-1],
+                                         self.backbone.channels[-2],
+                                         num_classes,
+                                         self.aux_for_deeplab)
         else:
             self.decode_head = head_dict[seg_head](self.backbone.channels, 128 if 'tiny' in backbone or 'small' in backbone else 768,
                                      num_classes)
-
 
         if pretrained_backbone:
             if os.path.exists(pretrained_backbone):
@@ -52,24 +59,15 @@ class SegmentationModel(nn.Module):
             else:
                 print('The pretrained weights path of backbone is wrong! File does not exists!!')
 
-
-    def __str__(self):
-        if 'MiT' in self.backbone_name:
-            return f'SegFormer-{self.backbone_name}'
-        else:
-            return f'{self.backbone_name}_{self.head_name}'
-
     def forward(self, x):
         y = self.backbone(x)
-        # for i in y:
-        #     print(i.shape)
         y = self.decode_head(y)
         y = F.interpolate(y, size=x.shape[2:], mode='bilinear', align_corners=False)
         return y
 
 
 # if __name__ == '__main__':
-#     model = SegmentationModel('mobilenetv4_large', seg_head='UPerHead').cuda()
+#     model = SegmentationModel('convnextv2_tiny', seg_head='deeplabv3').cuda()
 #     # model = SegmentationModel('MiT-B2').cuda()
 #     # ckpt = torch.load('../segformer.b2.1024x1024.city.160k.pth')['state_dict']
 #     # # TODO: Must remember that delete the additional layer(decode_head.conv_seg) when you load the segformer-mit models weight
