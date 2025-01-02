@@ -67,8 +67,8 @@ class SegmentationModel(BaseSegModel):
 
 
 # if __name__ == '__main__':
-#     model = SegmentationModel('convnextv2_tiny', seg_head='deeplabv3').cuda()
-#     # model = SegmentationModel('MiT-B2').cuda()
+    # model = SegmentationModel('convnextv2_tiny', seg_head='deeplabv3').cuda()
+    # model = SegmentationModel('caformer_m36').cuda()
 #     # ckpt = torch.load('../segformer.b2.1024x1024.city.160k.pth')['state_dict']
 #     # # TODO: Must remember that delete the additional layer(decode_head.conv_seg) when you load the segformer-mit models weight
 #     # del ckpt['decode_head.conv_seg.weight']
@@ -79,7 +79,7 @@ class SegmentationModel(BaseSegModel):
 #     x = torch.randn(2, 3, 384, 384).cuda()
 #     model.eval()
 #     y = model(x)
-#     # print(model)
-#     print(y.shape)
+    # print(model)
+    # print(y.shape)
 #     # print(model.modules)
 #     print('pass!')
