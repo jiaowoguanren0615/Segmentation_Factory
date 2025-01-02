@@ -4,6 +4,7 @@ from .convnextv2 import *
 from .crossformer import *
 from .crossformer_pp import *
 from .efficientViT import *
+from .metaformer import *
 from .mit import *
 from .mobilenetv2 import *
 from .mobilenetv3 import *
