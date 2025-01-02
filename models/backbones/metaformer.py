@@ -571,6 +571,7 @@ class MetaFormer(nn.Module):
                  ):
         super().__init__()
         self.num_classes = num_classes
+        self.channels = dims
 
         if not isinstance(depths, (list, tuple)):
             depths = [depths]  # it means the model has only one stage
