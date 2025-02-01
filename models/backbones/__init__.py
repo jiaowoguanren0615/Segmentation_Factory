@@ -15,3 +15,4 @@ from .mobilenetv4_config import *
 from .kantransformer import *
 from .feature_pyramid_network import *
 from .resnet import *
+from .iformer import *
