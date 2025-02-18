@@ -10,15 +10,14 @@ import torch.nn.functional as F
 import torch.utils.checkpoint
 from torch.jit import Final
 
-from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD, IMAGENET_INCEPTION_MEAN, IMAGENET_INCEPTION_STD, \
-    OPENAI_CLIP_MEAN, OPENAI_CLIP_STD
+from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.layers import PatchEmbed, DropPath, AttentionPoolLatent, RmsNorm, PatchDropout, SwiGLUPacked, \
     trunc_normal_, lecun_normal_, resample_patch_embed, resample_abs_pos_embed, use_fused_attn, \
     get_act_layer, get_norm_layer, LayerType
 from timm.models._builder import build_model_with_cfg
 from timm.models._features import feature_take_indices
 from timm.models._manipulate import named_apply, checkpoint_seq, adapt_input_conv
-from timm.models._registry import generate_default_cfgs, register_model, register_model_deprecations
+from timm.models._registry import register_model
 from timm.models.layers import to_2tuple
 
 import numpy as np
