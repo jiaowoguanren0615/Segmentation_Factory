@@ -11,11 +11,21 @@ class Metrics:
         self.ignore_label = ignore_label
         self.num_classes = num_classes
         self.hist = torch.zeros(num_classes, num_classes).to(device)
+        self.device = device
+
+        # Panoptic Quality
+        self.pq_hist = {
+            "TP": 0,  # True Positives
+            "FP": 0,  # False Positives
+            "FN": 0,  # False Negatives
+            "iou_sum": 0,  # For compute SQ
+        }
 
     def update(self, pred: Tensor, target: Tensor) -> None:
         pred = pred.argmax(1).flatten()
         keep = target != self.ignore_label
         self.hist += torch.bincount(target[keep] * self.num_classes + pred[keep], minlength=self.num_classes**2).view(self.num_classes, self.num_classes)
+
 
     def compute_iou(self):
         ious = self.hist.diag() / (self.hist.sum(0) + self.hist.sum(1) - self.hist.diag())
@@ -37,6 +47,63 @@ class Metrics:
         acc *= 100
         macc *= 100
         return acc.cpu().numpy().round(2).tolist(), round(macc, 2)
+
+    def update_pq(self, gt_masks: list[Tensor], pred_masks: list[Tensor], iou_threshold=0.5):
+        """
+        Only work for instance segmentation & panoptic segmentation tasks
+        :param gt_masks: 真实实例掩码列表，每个元素是形状 (H, W) 的 PyTorch Tensor
+        :param pred_masks: 预测实例掩码列表，每个元素是形状 (H, W) 的 PyTorch Tensor
+        :param iou_threshold: IoU 匹配阈值（默认 0.5）
+        """
+        matched_pairs = []
+        used_preds = set()
+        used_gts = set()
+
+        for gt_idx, gt_mask in enumerate(gt_masks):
+            best_iou = torch.tensor(0.0, device=self.device)
+            best_pred_idx = -1
+
+            for pred_idx, pred_mask in enumerate(pred_masks):
+                if pred_idx in used_preds:
+                    continue
+
+                intersection = torch.logical_and(gt_mask, pred_mask).sum().float()
+                union = torch.logical_or(gt_mask, pred_mask).sum().float()
+                iou = intersection / union if union > 0 else torch.tensor(0.0, device=self.device)
+
+                if iou > best_iou:
+                    best_iou = iou
+                    best_pred_idx = pred_idx
+
+            if best_iou >= iou_threshold:
+                matched_pairs.append((gt_idx, best_pred_idx, best_iou))
+                used_preds.add(best_pred_idx)
+                used_gts.add(gt_idx)
+
+        TP = len(matched_pairs)
+        FP = len(pred_masks) - TP
+        FN = len(gt_masks) - TP
+
+        # 更新 PQ 统计数据
+        self.pq_hist["TP"] += TP
+        self.pq_hist["FP"] += FP
+        self.pq_hist["FN"] += FN
+        self.pq_hist["iou_sum"] += sum([iou.item() for _, _, iou in matched_pairs])
+
+
+    def compute_pq(self):
+        """
+        Compute PQ, SQ, RQ
+        """
+        TP = self.pq_hist["TP"]
+        FP = self.pq_hist["FP"]
+        FN = self.pq_hist["FN"]
+        iou_sum = self.pq_hist["iou_sum"]
+
+        SQ = iou_sum / TP if TP > 0 else 0.0
+        RQ = TP / (TP + 0.5 * FP + 0.5 * FN) if (TP + 0.5 * FP + 0.5 * FN) > 0 else 0.0
+        PQ = SQ * RQ
+        return round(PQ * 100, 2), round(SQ * 100, 2), round(RQ * 100, 2)
 
     def reduce_from_all_processes(self):
         if not dist.is_available():
@@ -163,3 +230,16 @@ class F1Score(object):
     def __str__(self):
         max_f1 = self.compute()
         return f'maxF1: {max_f1:.3f}'
+
+
+
+def compute_iou_torch(mask1, mask2):
+    """
+    计算两个二值张量掩码的 IoU（Intersection over Union）
+    :param mask1: 真实分割掩码（Tensor），形状 (H, W)
+    :param mask2: 预测分割掩码（Tensor），形状 (H, W)
+    :return: IoU 值
+    """
+    intersection = torch.logical_and(mask1, mask2).sum().float()
+    union = torch.logical_or(mask1, mask2).sum().float()
+    return intersection / union if union > 0 else torch.tensor(0.0, device=mask1.device)
